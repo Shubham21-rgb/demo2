@@ -1,32 +1,35 @@
-name: Cache Example
+name: Multi-Platform Matrix Build with Artifacts
 
 on:
-  workflow_dispatch:
   push:
-    branches:
-      - main
+  pull_request:
 
 jobs:
-  cache-job:
+  build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [14, 16, 18]   # You can replace this with python-version or os matrix if you like
+
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
         with:
-          python-version: '3.x'
+          node-version: ${{ matrix.node-version }}
 
-      - name: prime-cache-0307b75
-        id: cache-0307b75
-        uses: actions/cache@v4
+      - name: matrix-d3c1244
+        run: echo "Building for Node version ${{ matrix.node-version }}"
+
+      - name: Generate build artifact
+        run: |
+          echo "Build output for Node version ${{ matrix.node-version }}" > output-${{ matrix.node-version }}.txt
+          echo "Timestamp: $(date)" >> output-${{ matrix.node-version }}.txt
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
-          path: ~/.cache/pip
-          key: cache-0307b75
-
-      - name: Show cache result
-        run: 'echo "Cache result: ${{ steps.prime-cache-0307b75.outputs.cache-hit }}"'
-
-      - name: Install dependencies
-        run: pip install requests
+          name: build-d3c1244-v${{ matrix.node-version }}
+          path: output-${{ matrix.node-version }}.txt
